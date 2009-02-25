@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	width="100%"
+	horizontalAlign="center"
+	>
+	
+	<mx:Metadata>
+		[Event(name="openFileRequest", type="flash.events.Event")]
+		[Event(name="generateDAORequest", type="flash.events.Event")]
+		[Event(name="generateVORequest", type="flash.events.Event")]
+		[Event(name="generateDAOandVORequest", type="flash.events.Event")]
+		[Event(name="chooseDestination", type="flash.events.Event")]
+		[Event(name="openLogWindow", type="flash.events.Event")]
+	</mx:Metadata>
+	
+	<mx:Script>
+		<![CDATA[
+		
+/*************************************************************************
+ * PUBLIC CONST		
+*************************************************************************/
+			
+			public static const OPEN_FILE:String = "openFileRequest";
+			public static const GENERATE_DAO:String = "generateDAORequest";
+			public static const GENERATE_VO:String = "generateVORequest";
+			public static const GENERATE_DAO_AND_VO:String = "generateDAOandVORequest";
+			public static const CHOOSE_DESTINATION:String = "chooseDestination";
+			public static const OPEN_LOG_WINDOW:String = "openLogWindow";
+
+/*************************************************************************
+ * Events management		
+*************************************************************************/
+	
+			private function openFile():void
+			{
+				dispatchEvent( new Event( OPEN_FILE, true, true ) );
+			}
+			private function generateDAO():void
+			{
+				dispatchEvent( new Event( GENERATE_DAO, true, true ) );
+			}
+			private function generateVO():void
+			{
+				dispatchEvent( new Event( GENERATE_VO, true, true ) );
+			}
+			private function generateDAOandVO():void
+			{
+				dispatchEvent( new Event( GENERATE_DAO_AND_VO, true, true ) );
+			}			
+			private function chooseDestination():void
+			{
+				dispatchEvent( new Event( CHOOSE_DESTINATION, true, true ) );
+			}			
+			private function openLog():void
+			{
+				dispatchEvent( new Event( OPEN_LOG_WINDOW, true, true ) );
+			}			
+		]]>
+	</mx:Script>
+	
+	<mx:HBox
+		width="100%"
+		horizontalAlign="center"
+		>
+		<mx:Button
+			id="openFileBtn"
+			label="Choose Database file"
+			click="openFile();"
+			/>
+		<mx:Button
+			id="chooseDestinationBtn"
+			label="Choose destination for exported classes"
+			click="chooseDestination();"
+			enabled="false"
+			/>
+		<mx:Button
+			id="showLogBtn"
+			label="open log"
+			click="openLog();"
+			enabled="true"
+			/>
+	</mx:HBox>
+	
+	<mx:HBox
+		width="100%"
+		horizontalAlign="center"
+		>
+		<mx:Button
+			id="generateDAOBtn"
+			label="Generate All DAOs"
+			click="generateDAO();"
+			enabled="false"
+			/>
+		<mx:Button
+			id="generateVOBtn"
+			label="Generate All VOs"
+			click="generateVO();"
+			enabled="false"
+			/>
+		<mx:Spacer 
+			width="30"
+			/>
+		<mx:Button
+			id="generateDAOandVOBtn"
+			label="Generate All VOs and DAOs"
+			click="generateDAOandVO();"
+			enabled="false"
+			/>
+	</mx:HBox>
+	
+</mx:VBox>	
+
