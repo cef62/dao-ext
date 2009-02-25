@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Window 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	layout="vertical" 
+	width="400" 
+	height="300"
+	
+	backgroundColor="#FFEDCE"
+	verticalGap="4"
+	
+	horizontalAlign="center"	
+	horizontalScrollPolicy="off"
+	
+	paddingBottom="5"
+	paddingLeft="5"
+	paddingRight="5"
+	paddingTop="5"
+	
+	title="Log console"
+	minimizable="false"
+	type="utility"
+	
+	visible="false"
+	>
+	
+	<mx:TextArea
+		id="logConsole"
+		width="100%"
+		height="100%"
+		/>
+	
+	<mx:Button
+		label="Clear"
+		click="logConsole.text = ''"
+		/>
+	
+</mx:Window>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:components="com.comtaste.sql.daogenerator.view.components.*" 
+	
+	layout="absolute"
+	
+	width="960"
+	height="660"
+	
+	verticalScrollPolicy="off"
+	horizontalScrollPolicy="off"
+	
+	applicationComplete="facade.startup(this);"
+	>
+	
+	<mx:Style source="/assets/css/obsidian/obsidian.css" />
+	
+	
+	<mx:Metadata>
+		[Event(name="openFileRequest", type="flash.events.Event")]
+		[Event(name="generateDAORequest", type="flash.events.Event")]
+		[Event(name="generateVORequest", type="flash.events.Event")]
+		[Event(name="chooseDestination", type="flash.events.Event")]
+
+		[Event(name="updateGlobalNamespaceVO", type="flash.events.Event")]
+		[Event(name="updateGlobalNamespaceDAO", type="flash.events.Event")]
+		[Event(name="forceNamespaceUpdate", type="flash.events.Event")]
+	</mx:Metadata>
+	
+	<mx:Script>
+		<![CDATA[
+			import com.comtaste.sql.daogenerator.view.components.TableDetailsRow;
+			import mx.core.UIComponentDescriptor;
+			import com.comtaste.sql.daogenerator.DaoGenFacade;
+			import mx.effects.easing.*;
+		
+/*************************************************************************
+ * EMBEDDED ASSETS		
+*************************************************************************/
+			
+			[Embed( source='/assets/grapx/backgroundChrome.png' )]
+			[Bindable] 
+			public var chromeBg:Class;
+			
+/*************************************************************************
+ * PUBLIC CONST		
+*************************************************************************/
+			
+			public static const UPDATE_GLOBAL_NAMESPACE_VO  :String = "updateGlobalNamespaceVO";
+			public static const UPDATE_GLOBAL_NAMESPACE_DAO  :String = "updateGlobalNamespaceDAO";
+			public static const FORCE_NAMESPACE_UPDATE  :String = "forceNamespaceUpdate";
+
+/*************************************************************************
+ * init pureMVC		
+*************************************************************************/
+	
+			private var facade:DaoGenFacade = DaoGenFacade.getInstance();
+			
+/*************************************************************************
+ * view properties
+*************************************************************************/
+			
+			[Bindable] private var currentDatabase:String = "";
+			
+			
+/*************************************************************************
+ * public API
+*************************************************************************/
+			
+			public function setCurrentDatabaseName( name:String ):void
+			{
+				currentDatabase = name;
+			}
+
+			public function clearTableRows():void
+			{
+				var row:TableDetailsRow;
+				for each( row in rowContainer.getChildren() )
+				{
+					// requesr row mediator and content destruction
+					row.destroy();
+				}
+				
+				// svuotiamo container
+				rowContainer.removeAllChildren();
+			}
+			
+			public function addTableRow( row:TableDetailsRow ):void
+			{
+				rowContainer.addChild( row );
+			}
+			
+/*************************************************************************
+ * Events management		
+*************************************************************************/
+			
+			private function updateGlobalNamespaceVO():void
+			{
+				dispatchEvent( new Event( UPDATE_GLOBAL_NAMESPACE_VO ) );
+			}
+
+			private function updateGlobalNamespaceDAO():void
+			{
+				dispatchEvent( new Event( UPDATE_GLOBAL_NAMESPACE_DAO ) );
+			}
+
+			private function forceNamespaceUpdate():void
+			{
+				dispatchEvent( new Event( FORCE_NAMESPACE_UPDATE ) );
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Image 
+		source="{chromeBg}" 
+		/>	
+	
+	<mx:Canvas
+		width="81"
+		height="37"
+		click="NativeApplication.nativeApplication.exit();"
+		y="41" 
+		x="27"
+		buttonMode="true"
+		/>
+
+	<mx:Canvas
+		width="308"
+		height="110"
+		mouseDown="this.stage.nativeWindow.startMove();"
+		y="10" 
+		x="642"
+		buttonMode="true"
+		/>
+	
+	
+	
+	
+	<components:MainControls
+		id="sqlControlsBar"
+		 y="140" width="879" x="44"/>
+
+	<mx:HBox
+		width="879"
+		horizontalAlign="center"
+		 y="200" x="44">
+		<mx:Label
+			text="current database:"
+			/>
+			
+		<mx:Label
+			text="{currentDatabase}"
+			/>
+	</mx:HBox>	
+
+	<mx:VBox
+		horizontalAlign="right"
+		y="230"
+		 width="879" x="44">
+		<mx:HBox
+			width="100%"
+			>
+			<mx:Label
+				text="global VO namespace:"
+				/>
+			<mx:TextInput
+				id="globalVONamespace"
+				width="100%"
+				change="updateGlobalNamespaceVO();"
+				/>	
+		</mx:HBox>	
+		<mx:HBox
+			width="100%"
+			>
+			<mx:Label
+				text="global DAO namespace:"
+				/>
+			<mx:TextInput
+				id="globalDAONamespace"
+				width="100%"
+				change="updateGlobalNamespaceDAO();"
+				/>	
+		</mx:HBox>	
+		
+		<mx:Button
+			label="Apply global namespaces to all"
+			click="forceNamespaceUpdate()"
+			/>
+	</mx:VBox>
+	
+	
+	<mx:VBox
+		id="rowContainer"
+		width="879"
+		height="321"
+		
+		backgroundAlpha="0.1"
+		backgroundColor="#FFEDCE"
+		verticalGap="4"
+		
+		horizontalScrollPolicy="off"
+		 x="44" y="316"/>
+		
+		
+</mx:Application>

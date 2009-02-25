@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+
+	minWidth="500" 
+	minHeight="230"
+	width="100%"
+	
+	verticalGap="7"
+	verticalAlign="middle"
+	
+	borderStyle="solid"
+	borderColor="0x999999"
+	borderThickness="0.8"
+	
+	horizontalScrollPolicy="off"
+	
+	paddingBottom="5"
+	paddingLeft="5"
+	paddingRight="5"
+	paddingTop="5"
+	>
+	
+	<mx:Metadata>
+		[Event(name="exportContent", type="com.comtaste.sql.daogenerator.events.TableDetailsRowEvent")]
+		[Event(name="destroyRow", type="flash.events.Event")]
+	</mx:Metadata>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.CloseEvent;
+			import mx.controls.Alert;
+			import com.comtaste.sql.daogenerator.model.vo.TableDetailsRowVO;
+			import com.comtaste.sql.daogenerator.events.TableDetailsRowEvent;
+			
+/**************************************************************
+ * VIEW CONSTANTS
+**************************************************************/
+			
+			public static const DESTROY_ROW:String = "destroyRow";
+				
+/**************************************************************
+ * VIEW DATA ACCESSOR
+**************************************************************/
+			
+			[Bindable] private var _tableName :  String;
+			public function setTableName( value:String ):void
+			{
+				_tableName = value;
+			}
+
+			public function setNamespaceVO( value:String ):void
+			{
+				voNamespace.text = value;
+			}
+
+			public function setNamespaceDAO( value:String ):void
+			{
+				daoName.text = value + ".<PUT HERE DAO NAME>";
+			}
+			
+			public function getTableRowDetails():TableDetailsRowVO
+			{
+				var vo:TableDetailsRowVO = new TableDetailsRowVO();
+				vo.tableName = _tableName;
+				vo.exportVO = generateVOCheck.selected;
+				vo.voNamespace = voNamespace.text;
+				vo.exportDAO = generateDAOCheck.selected;
+				vo.daoName = daoName.text;
+				return vo;
+			}
+			
+/**************************************************************
+ * PUBLIC API
+**************************************************************/
+			
+			public function destroy():void
+			{
+				dispatchEvent( new Event( DESTROY_ROW ) ); 
+			}
+
+/**************************************************************
+ * PRIVATE API
+**************************************************************/
+
+			private function exportContent():void
+			{
+				var boolVO:Boolean 	= generateVOCheck.selected;
+				var boolDAO:Boolean = generateDAOCheck.selected;
+				var textVO:String	= voNamespace.text;
+				var textDAO:String	= daoName.text;
+				
+				if( boolVO && boolDAO )
+				{
+					if( textVO == '' && textDAO == '' ) 
+					{
+						Alert.show( 'Namespace and fully qualified name not specified, to continue?', 'WARNING', 3, this, generateHandler );
+						return;
+					}
+					if( textVO == '' && textDAO != '' ) 
+					{
+						Alert.show( 'Namespace not specified, to continue?', 'WARNING', 3, this, generateHandler );
+						return;
+					}
+					if( textVO != '' && textDAO == '' ) 
+					{
+						Alert.show( 'Fully qualified name not specified, try again!', 'WARNING', 3, this, generateHandler );
+						return;
+					}
+				}
+				
+				if( boolVO && !boolDAO )
+				{
+					if( textVO == '' )
+						Alert.show( 'Namespace not specified, to continue?', 'WARNING', 3, this, generateHandler );
+				} 
+				else if( !boolVO && boolDAO )
+				{
+					if( textDAO == '' )
+						Alert.show( 'Fully qualified name not specified, try again!', 'WARNING', 3, this, generateHandler );
+				}
+				else
+				{
+					dispatchEvent( new TableDetailsRowEvent( TableDetailsRowEvent.EXPORT_CONTENT, getTableRowDetails(), true, true ) );
+				}
+			}
+			
+			private function generateHandler( evt:CloseEvent ):void
+			{
+				if ( evt.detail == Alert.YES )
+					dispatchEvent( new TableDetailsRowEvent( TableDetailsRowEvent.EXPORT_CONTENT, getTableRowDetails(), true, true ) );
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:HBox
+		horizontalScrollPolicy="off"
+		width="100%"
+		verticalAlign="bottom"
+		>
+		<mx:Label
+			text="Table Name:"
+			fontWeight="bold"
+			/>
+		<mx:Label
+			text="{_tableName}"
+			fontWeight="bold"
+			fontSize="14"
+			/>
+	</mx:HBox>
+	
+	
+	<mx:HBox
+		horizontalScrollPolicy="off"
+		width="100%"
+		horizontalAlign="center"
+		backgroundColor="0xCCCCCC"
+		>
+		<mx:Label
+			text="Value Object"
+			fontWeight="bold"
+			/>
+	</mx:HBox>
+	
+	<mx:VBox
+		horizontalScrollPolicy="off"
+		width="100%"
+		>
+		<mx:CheckBox
+			id="generateVOCheck"
+			label="Generate Value Object for this table"
+			/>
+
+		<mx:HBox
+			horizontalScrollPolicy="off"
+			width="100%"
+			>
+			<mx:Label
+				text="Value Object Namespace:"
+				fontWeight="bold"
+				/>
+			<mx:TextInput
+				id="voNamespace"
+				width="100%"
+				/>
+		</mx:HBox>
+	</mx:VBox>
+
+
+	<mx:HBox
+		horizontalScrollPolicy="off"
+		width="100%"
+		horizontalAlign="center"
+		backgroundColor="0xCCCCCC"
+		>
+		<mx:Label
+			text="DAO Class"
+			fontWeight="bold"
+			/>
+	</mx:HBox>
+	
+	<mx:VBox
+		horizontalScrollPolicy="off"
+		width="100%"
+		>
+		<mx:CheckBox
+			id="generateDAOCheck"
+			label="Generate DAO for this table"
+			/>
+
+		<mx:HBox
+			horizontalScrollPolicy="off"
+			width="100%"
+			>
+			<mx:Label
+				text="DAO fully qualified name:"
+				fontWeight="bold"
+				/>
+			<mx:TextInput
+				id="daoName"
+				width="100%"
+				/>
+		</mx:HBox>
+	</mx:VBox>
+
+
+	<mx:HBox
+		horizontalScrollPolicy="off"
+		width="100%"
+		backgroundColor="0xCCCC33"
+		horizontalAlign="right"
+		>
+		<mx:Button
+			label="Export"
+			click="exportContent();"
+			/>
+	</mx:HBox>
+	
+</mx:VBox>
