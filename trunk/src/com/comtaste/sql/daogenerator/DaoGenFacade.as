@@ -11,6 +11,7 @@ package com.comtaste.sql.daogenerator
     import com.comtaste.sql.daogenerator.commands.UpdateGlobalNamespaceDAOCommand;
     import com.comtaste.sql.daogenerator.commands.UpdateGlobalNamespaceVOCommand;
     import com.comtaste.sql.daogenerator.commands.startup.ApplicationStartupCommand;
+    import com.comtaste.sql.daogenerator.commands.status.NetStatusChangedCommand;
     
     import org.puremvc.as3.interfaces.*;
     import org.puremvc.as3.patterns.facade.*;
@@ -57,14 +58,17 @@ package com.comtaste.sql.daogenerator
  * 
 **************************************************************/
 		
+		// generated when an updated is found but failed to apply
+		public static const APP_UPDATE_FAILED:String 		= "appUpdateFailed";
 
 		// navigation request
 		public static const GO_TO_REQUEST:String			= "goToRequest";
 
 		// Log request
 		public static const WRITELOG:String					= "writeLog";
-
-
+		
+		// client connection status changed
+		public static const NET_STATUS_CHANGED:String		= "appNetStatusChanged";
 
 
 
@@ -85,6 +89,8 @@ package com.comtaste.sql.daogenerator
         {
             super.initializeController(); 
             registerCommand( STARTUP, ApplicationStartupCommand );
+            registerCommand( NET_STATUS_CHANGED, NetStatusChangedCommand );
+             
             registerCommand( CHOOSE_DESTINATION, ChooseDestinationFolderCommand );
             registerCommand( CHOOSE_DATABASE, ChooseDatabaseFileCommand );
             registerCommand( LOAD_SQL_SCHEMA, LoadDatabaseSchemaCommand );
