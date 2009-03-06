@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<update xmlns="http://ns.adobe.com/air/framework/update/description/1.0"> 
+   <version>0.1</version> 
+   <url>http://www.comtaste.com/dao-ext/Dao-Ext_0_1.air</url> 
+   <description> 
+       <text xml:lang="en">Download Updated version of Dao-Ext</text> 
+       <text xml:lang="it">Scaricate la versione aggiornata di Dao-Ext</text> 
+   </description> 
+</update>
