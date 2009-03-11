@@ -35,7 +35,7 @@ package com.comtaste.sql.daogenerator.commands
         			connection.open( file, SQLMode.CREATE );
         			
         			// carica schema
-        			connection.loadSchema( SQLTableSchema, null, "main", true, new Responder( onResult, onError ) );
+        			connection.loadSchema( null, null, "main", true, new Responder( onResult, onError ) );
         			
         			
         		} catch( e:Error )
@@ -57,11 +57,17 @@ package com.comtaste.sql.daogenerator.commands
 		{
 			connection.close();
 			
-			var tables:Array = result.tables;
+			DaoGenModelLocator.getInstance().availableTables = new ArrayCollection( result.tables ); 
+			DaoGenModelLocator.getInstance().availableIndices = new ArrayCollection( result.indices );
 			
-			DaoGenModelLocator.getInstance().availableTables = new ArrayCollection( tables ); 
+			//TODO add triggers 
+			//TODO add views 
 			
-			sendNotification( DaoGenFacade.LOAD_SQL_SCHEMA_RESULT, new ArrayCollection( tables ) );
+			/*
+			* now DaoGenFacade.LOAD_SQL_SCHEMA_RESULT notification
+			* transport the complete loaded SQLSchemaResult instance
+			*/
+			sendNotification( DaoGenFacade.LOAD_SQL_SCHEMA_RESULT, result );
 			
 			// scriviamo log
 		    sendNotification( DaoGenFacade.WRITELOG, null, "Schema DB loaded" );

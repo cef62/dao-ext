@@ -91,44 +91,49 @@ package com.comtaste.sql.daogenerator.model
 				var columnName:String 		= col.name;
 				var columnType:String		= col.dataType;
 				
-				switch( columnType ) 
+				switch( columnType.toLowerCase() ) 
 				{
-					case 'TEXT':
+					case 'text':
+					case 'varchar':
 						columnType = 'String';
 						break;
 					
-					case 'NUMERIC':
-					case 'INTEGER':
-					case 'REAL':
+					case 'numeric':
+					case 'real':
+					case 'float':
 						columnType = 'Number';
 						break;
+
+					case 'integer':
+						columnType = 'int';
+						break;
 					
-					case 'DATE':
+					case 'date':
 						columnType = 'Date';
 						break;
 						
-					case 'XML':
+					case 'xml':
 						columnType = 'XML';
 						break;
 						
-					case 'BOOLEAN':
+					case 'boolean':
 						columnType = 'Boolean';
 						break;
 						
 						
-					case 'BLOB':
+					case 'blob':
 					default:
 						columnType = 'Object';
 						break;
 				}
 				
 				beanSetterGetter = beanSetterGetter + 
-						RETURN+LV2+"private var _" + columnName + ":" + columnType + ";" +
-						RETURN+LV2+"public function get " + columnName + "():" + columnType + " {" + 
+						RETURN+LV2+"private var _" + columnName + " : " + columnType + ";" +
+						RETURN+LV2+"public function get " + columnName + "() : " + columnType + " {" + 
 						RETURN+LV3+"return _" + columnName + ";" +
 						RETURN+LV2+"}" +
 						RETURN+LV2+"" +
-						RETURN+LV2+"public function set " + columnName + "( value:" +  columnType + " ) {" + 
+						RETURN+LV2+"public function set " + columnName + "( value : " +  columnType + " ) : void  {" + 
 						RETURN+LV3+"_" + columnName + " = value;" + 
 						RETURN+LV2+"}" +
 						RETURN+LV2;
@@ -142,9 +147,9 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV1+" * @author www.comtaste.com" + 
 						RETURN+LV1+"*/" + 
 						RETURN+LV1+"[Bindable]" + 
-						RETURN+LV1+"public class " + tableName + " {" + 
+						RETURN+LV1+"public class " + tableName + "VO" + " {" + 
 						RETURN+LV2+"" +
-						RETURN+LV2+"public function " + tableName + "() {" + 
+						RETURN+LV2+"public function " + tableName + "VO" + "() {" + 
 						RETURN+LV2+"}" + 
 						RETURN+LV2+"" +
 						beanSetterGetter +

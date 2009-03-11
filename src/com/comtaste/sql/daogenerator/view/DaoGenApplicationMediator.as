@@ -5,6 +5,7 @@ package com.comtaste.sql.daogenerator.view
     import com.comtaste.sql.daogenerator.view.components.LogView;
     import com.comtaste.sql.daogenerator.view.components.TableDetailsRow;
     
+    import flash.data.SQLSchemaResult;
     import flash.data.SQLTableSchema;
     import flash.events.Event;
     import flash.system.Capabilities;
@@ -68,7 +69,8 @@ package com.comtaste.sql.daogenerator.view
 			{
 				case DaoGenFacade.LOAD_SQL_SCHEMA_RESULT:
 					clearTableRowsContainer();
-					populateTableRowsContainer( note.getBody() as ArrayCollection );
+					var tables:ArrayCollection = new ArrayCollection( ( note.getBody() as SQLSchemaResult ).tables );
+					populateTableRowsContainer( tables );
 					break;
 					
 				default:

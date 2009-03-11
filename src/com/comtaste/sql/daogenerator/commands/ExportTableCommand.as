@@ -8,6 +8,8 @@ package com.comtaste.sql.daogenerator.commands
     
     import flash.data.SQLTableSchema;
     
+    import mx.collections.ArrayCollection;
+    
     import org.puremvc.as3.interfaces.*;
     import org.puremvc.as3.patterns.command.*;
     import org.puremvc.as3.patterns.observer.*;
@@ -17,6 +19,7 @@ package com.comtaste.sql.daogenerator.commands
 		
     	private var rowDetails:TableDetailsRowVO;
     	private var tableSchema:SQLTableSchema;
+    	private var tableIndices:ArrayCollection;
     	private var voString:String;
     	private var daoString:String;
     	private var fullVOName:String;
@@ -26,6 +29,8 @@ package com.comtaste.sql.daogenerator.commands
 			rowDetails = note.getBody() as TableDetailsRowVO;
 			
 			tableSchema = DaoGenModelLocator.getInstance().getTableSchemaByName( rowDetails.tableName );
+			tableIndices = DaoGenModelLocator.getInstance().getIndicesSchemaByTableName( rowDetails.tableName );
+			// TODO aggiungere generazione INDICI
 			
 			if( tableSchema != null )
 			{
@@ -65,7 +70,7 @@ package com.comtaste.sql.daogenerator.commands
 				fullVOName = "Object";
 			
 			// generazione del DAO
-			daoString = daoProxy.generateTableDAOString( rowDetails.tableName, fullVOName, tableSchema.columns, tableSchema.sql, rowDetails.daoName );
+			daoString = daoProxy.generateTableDAOString( rowDetails.tableName, fullVOName, tableSchema.columns, tableSchema.sql, rowDetails.daoName, tableIndices.toArray() );
 			
 			var result:Boolean = daoProxy.writeDAOToFile( rowDetails.tableName, daoString, DaoGenModelLocator.getInstance().destinationFolder, rowDetails.daoName );
 			
