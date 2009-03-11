@@ -70,7 +70,11 @@ package com.comtaste.sql.daogenerator.commands
 				fullVOName = "Object";
 			
 			// generazione del DAO
-			daoString = daoProxy.generateTableDAOString( rowDetails.tableName, fullVOName, tableSchema.columns, tableSchema.sql, rowDetails.daoName, tableIndices.toArray() );
+			var indices:Array;
+			if( tableIndices != null && tableIndices.length > 0)
+				indices = tableIndices.toArray();
+				
+			daoString = daoProxy.generateTableDAOString( rowDetails.tableName, fullVOName, tableSchema.columns, tableSchema.sql, rowDetails.daoName, indices );
 			
 			var result:Boolean = daoProxy.writeDAOToFile( rowDetails.tableName, daoString, DaoGenModelLocator.getInstance().destinationFolder, rowDetails.daoName );
 			
