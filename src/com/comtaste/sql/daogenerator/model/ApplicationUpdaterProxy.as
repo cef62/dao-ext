@@ -30,7 +30,7 @@ package com.comtaste.sql.daogenerator.model
 		/**
 		 * UPDATE MANAGER
 		 */
-		private var updater : ApplicationUpdaterUI = new ApplicationUpdaterUI();
+		private var updater : ApplicationUpdaterUI;
 
 		private var _connectionAvailable  : Boolean = false;
 		
@@ -61,11 +61,15 @@ package com.comtaste.sql.daogenerator.model
 		
 		private function initUpdater():void 
 		{
-			// initialize application updater
-			updater.configurationFile = File.applicationDirectory.resolvePath( "config/updaterConfig.xml" );
-			updater.addEventListener(UpdateEvent.INITIALIZED, onUpdaterInitialized );
-			updater.addEventListener(ErrorEvent.ERROR, onUpdaterError );
-			updater.initialize();
+			if( _connectionAvailable && updater == null )
+			{
+				// initialize application updater
+				updater = new ApplicationUpdaterUI();
+				updater.configurationFile = File.applicationDirectory.resolvePath( "config/updaterConfig.xml" );
+				updater.addEventListener(UpdateEvent.INITIALIZED, onUpdaterInitialized );
+				updater.addEventListener(ErrorEvent.ERROR, onUpdaterError );
+				updater.initialize();
+			}
 		}
 		
 
@@ -97,6 +101,7 @@ package com.comtaste.sql.daogenerator.model
 		public function setConnectionAvailable( val:Boolean ):void
 		{
 			_connectionAvailable = val;
+			initUpdater();
 		}
 		
 		
