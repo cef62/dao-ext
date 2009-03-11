@@ -1,6 +1,7 @@
 package com.comtaste.sql.daogenerator.model
 {
 	import flash.data.SQLColumnSchema;
+	import flash.data.SQLIndexSchema;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
@@ -32,7 +33,7 @@ package com.comtaste.sql.daogenerator.model
 		private static var LV5 : String = "\t\t\t\t\t";
 		private static var RETURN : String = File.lineEnding;
 		
-
+		private static var CREATE_INDEX_METHOD_PREFIX : String = "createIndex";
 /*************************************************************************
  * data accessor		
 *************************************************************************/	
@@ -131,7 +132,7 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV2+"public function getTableContent( resultHandler:Function, faultHandler:Function = null ):void {" + 
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
-						RETURN+LV3+"stmt.text = \"SELECT * FROM " + tableName + "\";";
+						RETURN+LV3+"stmt.text = 'SELECT * FROM " + tableName + ";';";
 						
 				if( voClass != null && voClass != "Object" && voClass != "" )
 					sqlSELECT += RETURN+LV3+"stmt.itemClass = " + voClass + ";";
@@ -165,7 +166,7 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV2+"public function updateRow( rowItem:" + voClass + ", resultHandler:Function = null, faultHandler:Function = null ):void {" +  
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
-						RETURN+LV3+"stmt.text = \"UPDATE " + tableName + " SET " + resultValue + " WHERE ID = ?\";" + 
+						RETURN+LV3+"stmt.text = 'UPDATE " + tableName + " SET " + resultValue + " WHERE ID = ?;';" + 
 						RETURN+LV3+"setParameters( stmt, [ " + resultValueVO + " ] );" + 
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
 						RETURN+LV3+"function ( event:SQLEvent ):void {" + 
@@ -196,7 +197,7 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV2+"public function insertRow( rowItem:" + voClass + ", resultHandler:Function = null, faultHandler:Function = null ):void {" +  
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
-						RETURN+LV3+"stmt.text = \"INSERT INTO " + tableName + "( " + resultValue + " ), VALUES ( " + resultValueVO + " );\"" +
+						RETURN+LV3+"stmt.text = 'INSERT INTO " + tableName + "( " + resultValue + " ), VALUES ( " + resultValueVO + " );';" +
 						RETURN+LV3+"var params:Array = [ " + resultValueVO + " ];" +
 						RETURN+LV3+"setParameters( stmt, params );" + 
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
@@ -222,7 +223,7 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV2+"public function deleteRow( rowItem:" + voClass + ", resultHandler:Function = null, faultHandler:Function = null ):void {" +  
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
-						RETURN+LV3+"stmt.text = \"DELETE FROM " + tableName + " WHERE " + primaryKey + " = primaryKey." + primaryKey + ";\"" +
+						RETURN+LV3+"stmt.text = 'DELETE FROM " + tableName + " WHERE " + primaryKey + " = primaryKey." + primaryKey + ";';" +
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
 						RETURN+LV3+"function ( event:SQLEvent ):void {" + 
 						RETURN+LV4+"if (resultHandler != null) resultHandler.call(this, rowItem);" +
@@ -244,7 +245,7 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV2+"public function createTable( resultHandler:Function = null, faultHandler:Function = null ):void {" +  
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
-						RETURN+LV3+"stmt.text = \"CREATE TABLE IF NOT EXISTS " + tableName + " " + creationSQL + ";\"";
+						RETURN+LV3+"stmt.text = 'CREATE TABLE IF NOT EXISTS " + tableName + " " + creationSQL + ";';" +
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
 						RETURN+LV3+"function ( event:SQLEvent ):void {" + 
 						RETURN+LV4+"if (resultHandler != null) resultHandler.call(this);" +
@@ -256,11 +257,65 @@ package com.comtaste.sql.daogenerator.model
 			return sqlCREATE;
 		}
 		
+		private function createTableIndices( indices:Array ):String
+		{
+			if( indices == null || indices.length == 0 )
+				return "";
+			
+			var sqlCREATE:String = "";
+			
+			var creationSQL:String;
+			var indexSchema:SQLIndexSchema;
+			for each( indexSchema in indices )
+			{
+				creationSQL = indexSchema.sql;
+				var pos:int = creationSQL.indexOf( "ON " );
+				if( pos < 0 )
+					continue;
+				creationSQL = creationSQL.substring( pos );
+				
+				sqlCREATE += 
+					RETURN+LV2+"public function " + CREATE_INDEX_METHOD_PREFIX + indexSchema.name + "( resultHandler:Function = null, faultHandler:Function = null ):void {" +  
+					RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
+					RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
+					RETURN+LV3+"stmt.text = 'CREATE UNIQUE INDEX IF NOT EXISTS " + indexSchema.database + "." + indexSchema.name + " " + creationSQL + ";';" +
+					RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
+					RETURN+LV3+"function ( event:SQLEvent ):void {" + 
+					RETURN+LV4+"if (resultHandler != null) resultHandler.call(this);" +
+					RETURN+LV3+"});" + 
+					RETURN+LV3+"stmt.addEventListener( SQLErrorEvent.ERROR, faultHandler == null ? sqlErrorHandler : faultHandler );" + 
+					RETURN+LV3+"stmt.execute();" + 
+					RETURN+LV2+"}" + 
+					RETURN+LV2;
+			}
+			
+			return sqlCREATE;
+		}
+		
+		
+		private function createTableIndicesInitialization( indices:Array ):String
+		{
+			if( indices == null || indices.length == 0 )
+				return "";
+			
+			var sqlCREATE:String = "";
+			sqlCREATE += "// try to generate indices for this table";  
+			
+			var creationSQL:String;
+			var indexSchema:SQLIndexSchema;
+			for each( indexSchema in indices )
+			{
+				sqlCREATE +=  RETURN+LV3+ CREATE_INDEX_METHOD_PREFIX + indexSchema.name + "();"; 
+			}
+			
+			return sqlCREATE;
+		}
+		
 /*************************************************************************
  * PUBLIC API		
 *************************************************************************/	
 			
-		public function generateTableDAOString( tableName:String, fullVOName:String, columns:Array, cretionSQL:String, daoName:String = "" ):String
+		public function generateTableDAOString( tableName:String, fullVOName:String, columns:Array, cretionSQL:String, daoName:String, indices:Array = null ):String
 		{
 			var parameters:ArrayCollection = new ArrayCollection();
 			
@@ -292,11 +347,21 @@ package com.comtaste.sql.daogenerator.model
 			var defaultImport:String	= defaultImport();
 			var singletonDAO:String 	= singletonBlock( className );
 			var defaultDAO:String 		= defaultDAO( parameters );
-			var selectDAO:String 		= getDAO( tableName );
+			
+			var selectDAO:String;
+			if( fullVOName != null || fullVOName != "" )
+				selectDAO = getDAO( tableName, voClass );
+			else
+				selectDAO = getDAO( tableName );
+			
 			var updateDAO:String 		= updateDAO( tableName, parameters, voClass );
 			var insertDAO:String 		= insertDAO( tableName, parameters, primaryKeyAutoIncrement, voClass );
 			var deleteDAO:String 		= deleteDAO( tableName, parameters, primaryKey, voClass );
 			var createTableDAO:String 	= createTableDAO( tableName, cretionSQL );
+			
+			var createTableIndices:String = createTableIndices( indices );
+			var indicesInitialization:String = createTableIndicesInitialization( indices );
+			
 			
 			var voString:String = 
 						"package " + packageName +
@@ -306,9 +371,16 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV1+"*/" + 
 						RETURN+LV1+"" +
 						defaultImport +
-						RETURN+LV1+"" +
-						RETURN+LV1+ "import " + fullVOName + ";" + 
-						RETURN+LV1+"" +
+						RETURN+LV1+"";
+			
+			if( fullVOName != null || fullVOName != "" )
+			{
+				voString += 
+							RETURN+LV1+ "import " + fullVOName + ";" + 
+							RETURN+LV1+"";
+			}
+
+			voString += 
 						RETURN+LV1+"public class " + className + 
 						RETURN+LV1+"{" +
 						RETURN+LV1+"" +
@@ -324,10 +396,12 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV2+"public static function setConnection( connection:SQLConnection ):void {" +
 						RETURN+LV3+"// try construct table on Database any time a new connection is submitted" +
 						RETURN+LV3+"createTable();" +
+						RETURN+LV3+indicesInitialization +
 						RETURN+LV3+"sqlConnection = connection;" +
 						RETURN+LV2+"}" +
 						RETURN+LV1+"" +
 						createTableDAO +
+						createTableIndices +
 						selectDAO +
 						updateDAO +
 						insertDAO +

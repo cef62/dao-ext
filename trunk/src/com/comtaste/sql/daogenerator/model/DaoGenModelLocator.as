@@ -1,6 +1,7 @@
 package com.comtaste.sql.daogenerator.model
 {
 	import flash.data.SQLConnection;
+	import flash.data.SQLIndexSchema;
 	import flash.data.SQLTableSchema;
 	import flash.filesystem.File;
 	
@@ -37,6 +38,24 @@ package com.comtaste.sql.daogenerator.model
 			}
 			
 			return tableSchema;
+		}
+
+
+		public function getIndicesSchemaByTableName( tableName:String ):ArrayCollection
+		{
+			if( availableIndices == null || availableIndices.length == 0 )
+				return null;
+			
+			var coll:ArrayCollection = new ArrayCollection();
+			var indexSchema:SQLIndexSchema;
+			for each( indexSchema in availableIndices )
+			{
+				if( indexSchema.table == tableName )
+					coll.addItem( indexSchema );
+				indexSchema = null;
+			}
+			
+			return coll;
 		}
 		
 /*************************************************************************
@@ -101,6 +120,20 @@ package com.comtaste.sql.daogenerator.model
 		{
 			_availableTables = value;
 		}
+		
+		
+		
+		private var _availableIndices:ArrayCollection = new ArrayCollection();
+		public function get availableIndices():ArrayCollection
+		{
+			return _availableIndices;
+		}
+		[Bindable]
+		public function set availableIndices( value:ArrayCollection ):void
+		{
+			_availableIndices = value;
+		}
+
 
 
 		private var _globalNamespaceVO:String = "";
