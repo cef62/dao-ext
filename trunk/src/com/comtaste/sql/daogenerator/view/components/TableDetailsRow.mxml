@@ -94,17 +94,17 @@
 				{
 					if( textVO == '' && textDAO == '' ) 
 					{
-						Alert.show( 'Namespace and fully qualified name not specified, to continue?', 'WARNING', 3, this, generateHandler );
+						Alert.show( 'Namespace and fully qualified name not specified, continue?', 'WARNING', 3, this, generateHandler );
 						return;
 					}
 					if( textVO == '' && textDAO != '' ) 
 					{
-						Alert.show( 'Namespace not specified, to continue?', 'WARNING', 3, this, generateHandler );
+						Alert.show( 'Namespace not specified, continue?', 'WARNING', 3, this, generateHandler );
 						return;
 					}
 					if( textVO != '' && textDAO == '' ) 
 					{
-						Alert.show( 'Fully qualified name not specified, try again!', 'WARNING', 3, this, generateHandler );
+						Alert.show( 'Fully qualified name and namespace not specified, continue?', 'WARNING', 3, this, generateHandler );
 						return;
 					}
 				}
@@ -112,14 +112,21 @@
 				if( boolVO && !boolDAO )
 				{
 					if( textVO == '' )
-						Alert.show( 'Namespace not specified, to continue?', 'WARNING', 3, this, generateHandler );
+					{
+						Alert.show( 'Namespace not specified, continue?', 'WARNING', 3, this, generateHandler );
+						return;
+					}
 				} 
 				else if( !boolVO && boolDAO )
 				{
 					if( textDAO == '' )
-						Alert.show( 'Fully qualified name not specified, try again!', 'WARNING', 3, this, generateHandler );
+					{
+						Alert.show( 'Fully qualified name not specified, continue?!', 'WARNING', 3, this, generateHandler );
+						return;
+					}
 				}
-				else
+				
+				if( boolVO || boolDAO )
 				{
 					dispatchEvent( new TableDetailsRowEvent( TableDetailsRowEvent.EXPORT_CONTENT, getTableRowDetails(), true, true ) );
 				}
