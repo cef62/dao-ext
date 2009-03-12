@@ -179,7 +179,7 @@ package com.comtaste.sql.daogenerator.model
 			return sqlUPDATE;
 		}
 		
-		private function insertDAO( tableName:String, parameters:ArrayCollection, primaryKey:String=null, voClass:String="Object" ):String 
+		private function insertDAO( tableName:String, parameters:ArrayCollection, autoIncrementField:String = null, voClass:String="Object" ):String 
 		{
 			var resultValue:String 			= "";
 			var resultValueVOSql:String 	= "";
@@ -187,6 +187,10 @@ package com.comtaste.sql.daogenerator.model
 			var value:String;
 			for each ( value in parameters ) 
 			{
+				// skip autoincrement field
+				if( autoIncrementField != null && autoIncrementField == value )
+					continue;
+					
 				resultValue 		= resultValue + value + ", ";
 				resultValueVOSql	= resultValueVOSql + '?,';
 				resultValueVO		= resultValueVO + 'rowItem.' + value + ', ';
@@ -215,9 +219,9 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
 						RETURN+LV3+"function ( event:SQLEvent ):void {"; 
 						
-				if( primaryKey != null )
-					sqlINSERT += RETURN+LV4+"if (!rowItem." + primaryKey + " > 0) rowItem." + primaryKey + " = stmt.getResult().lastInsertRowID;"; 
-						
+				if( autoIncrementField != null )
+					sqlINSERT += RETURN+LV4+"if (!rowItem." + autoIncrementField + " > 0) rowItem." + autoIncrementField + " = stmt.getResult().lastInsertRowID;";
+				
 				sqlINSERT += 		
 						RETURN+LV4+"if (resultHandler != null) resultHandler.call(this, rowItem);" +
 						RETURN+LV3+"});" + 
@@ -228,14 +232,35 @@ package com.comtaste.sql.daogenerator.model
 			return sqlINSERT;
 		}
 		
-		private function deleteDAO( tableName:String, parameters:ArrayCollection, primaryKey:String=null, voClass:String="Object" ):String 
+		private function deleteDAO( tableName:String, parameters:ArrayCollection, primaryKeys:Array, voClass:String="Object" ):String 
 		{
+			// ensure that a primary key exists
+			if( primaryKeys == null || primaryKeys.length == 0 )
+				throw new Error( "Impossible define a delete statement witohout any primary key" );
+				
 			// delete function
 			var sqlDELETE:String = 
 						RETURN+LV2+"public function deleteRow( rowItem:" + voClass + ", resultHandler:Function = null, faultHandler:Function = null ):void {" +  
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
-						RETURN+LV3+"stmt.text = 'DELETE FROM " + tableName + " WHERE " + primaryKey + " = primaryKey." + primaryKey + ";';" +
+						RETURN+LV3+"stmt.text = 'DELETE FROM " + tableName + " WHERE ";
+						
+			// apply correct execution conditions
+			var fielName:String;
+			for each( fielName in primaryKeys )
+			{			
+				sqlDELETE += fielName + " = " + tableName + "." + fielName + " AND ";
+			}
+			// remove last 'AND ' token
+			var pos:int = sqlDELETE.lastIndexOf( " AND " );
+			if( pos > 0 )
+			{
+				sqlDELETE = sqlDELETE.substring( 0, pos );
+			}
+			// close statement line
+			sqlDELETE += ";';";
+						
+			sqlDELETE +=			
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
 						RETURN+LV3+"function ( event:SQLEvent ):void {" + 
 						RETURN+LV4+"if (resultHandler != null) resultHandler.call(this, rowItem);" +
@@ -327,12 +352,14 @@ package com.comtaste.sql.daogenerator.model
  * PUBLIC API		
 *************************************************************************/	
 			
-		public function generateTableDAOString( tableName:String, fullVOName:String, columns:Array, cretionSQL:String, daoName:String, indices:Array = null ):String
+		public function generateTableDAOString( tableName:String, fullVOName:String, columns:Array, creationSQL:String, daoName:String, indices:Array = null ):String
 		{
 			var parameters:ArrayCollection = new ArrayCollection();
 			
-			var primaryKey:String;
+			//var primaryKey:String;
 			var primaryKeyAutoIncrement:String;
+
+			var primaryKeys:Array = new Array();
 			var col:SQLColumnSchema;
 			
 			// cycle all the variables in SQLColumnSchema ( columns of the table ) and also generate methods
@@ -342,10 +369,11 @@ package com.comtaste.sql.daogenerator.model
 				var columnType:String = col.dataType;
 				parameters.addItem( columnName );
 				
-				if( col.primaryKey && col.autoIncrement )
+				if( col.primaryKey )
+					primaryKeys.push( col.name );
+					
+				if( col.autoIncrement && primaryKeyAutoIncrement == null )
 					primaryKeyAutoIncrement = col.name;
-				else if( col.primaryKey )
-					primaryKey = col.name;
 			}
 			
 			
@@ -365,11 +393,16 @@ package com.comtaste.sql.daogenerator.model
 				selectDAO = getDAO( tableName, voClass );
 			else
 				selectDAO = getDAO( tableName );
+				
+				
+			// clean 'cretaionSQL' from occasional TAB and RETURN escaped CARRIAGE (\n || \t)
+			var regExp:RegExp = new RegExp("(\\t)|(\\n)", "g");
+        	var cleanCreationSQL:String = creationSQL.replace( regExp, "" );	
 			
 			var updateDAO:String 		= updateDAO( tableName, parameters, voClass );
 			var insertDAO:String 		= insertDAO( tableName, parameters, primaryKeyAutoIncrement, voClass );
-			var deleteDAO:String 		= deleteDAO( tableName, parameters, primaryKey, voClass );
-			var createTableDAO:String 	= createTableDAO( tableName, cretionSQL );
+			var deleteDAO:String 		= deleteDAO( tableName, parameters, primaryKeys, voClass );
+			var createTableDAO:String 	= createTableDAO( tableName, cleanCreationSQL );
 			
 			var createTableIndices:String = createTableIndices( indices );
 			var indicesInitialization:String = createTableIndicesInitialization( indices );
