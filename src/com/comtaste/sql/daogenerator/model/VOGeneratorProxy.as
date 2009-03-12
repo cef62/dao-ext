@@ -90,6 +90,7 @@ package com.comtaste.sql.daogenerator.model
 			{
 				var columnName:String 		= col.name;
 				var columnType:String		= col.dataType;
+				var isPrimary:Boolean		= col.primaryKey;
 				
 				switch( columnType.toLowerCase() ) 
 				{
@@ -126,6 +127,13 @@ package com.comtaste.sql.daogenerator.model
 						columnType = 'Object';
 						break;
 				}
+				
+				if( isPrimary )
+				{
+					beanSetterGetter = beanSetterGetter + 
+									RETURN+LV2+"// PRIMARY KEY";
+				}
+				
 				
 				beanSetterGetter = beanSetterGetter + 
 						RETURN+LV2+"private var _" + columnName + " : " + columnType + ";" +
