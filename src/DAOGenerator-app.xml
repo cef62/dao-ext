@@ -7,7 +7,7 @@
 
 	<name>Dao-Ext</name>
 
-	<version>0.2</version>
+	<version>0.2.1</version>
 
 	<initialWindow>
 		<content>[This value will be overwritten by Flex Builder in the output app.xml]</content>
