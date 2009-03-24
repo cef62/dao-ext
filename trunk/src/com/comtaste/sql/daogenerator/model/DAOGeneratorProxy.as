@@ -159,6 +159,7 @@ package com.comtaste.sql.daogenerator.model
 				resultValue 	= resultValue + value + " = ? , ";
 				resultValueVO	= resultValueVO + 'rowItem.' + value + ', ';
 			}
+			resultValue 	= resultValue.substr( 0, resultValue.length - 2 );
 			resultValueVO 	= resultValueVO.substr( 0, resultValueVO.length - 2 );
 			
 			// update function
@@ -166,7 +167,7 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV2+"public function updateRow( rowItem:" + voClass + ", resultHandler:Function = null, faultHandler:Function = null ):void {" +  
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
-						RETURN+LV3+"stmt.text = 'UPDATE " + tableName + " SET " + resultValue + " WHERE ID = ?;';" + 
+						RETURN+LV3+"stmt.text = 'UPDATE " + tableName + " SET " + resultValue + "WHERE ID = ?;';" + 
 						RETURN+LV3+"setParameters( stmt, [ " + resultValueVO + " ] );" + 
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
 						RETURN+LV3+"function ( event:SQLEvent ):void {" + 
@@ -198,7 +199,7 @@ package com.comtaste.sql.daogenerator.model
 
 			// remove last comma if needed
 			if( resultValue.length > 0 ) 
-				resultValue 	= resultValue.substr( 0, resultValue.length - 1 );
+				resultValue 	= resultValue.substr( 0, resultValue.length - 2 );
 			
 			// remove last comma if needed
 			if( resultValueVOSql.length > 0 )
@@ -206,14 +207,14 @@ package com.comtaste.sql.daogenerator.model
 				
 			// remove last comma if needed
 			if( resultValueVO.length > 0 )
-				resultValueVO 	= resultValueVO.substr( 0, resultValueVO.length - 1 );
+				resultValueVO 	= resultValueVO.substr( 0, resultValueVO.length - 2 );
 			
 			// insert function
 			var sqlINSERT:String = 
 						RETURN+LV2+"public function insertRow( rowItem:" + voClass + ", resultHandler:Function = null, faultHandler:Function = null ):void {" +  
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
-						RETURN+LV3+"stmt.text = 'INSERT INTO " + tableName + "( " + resultValue + " ), VALUES ( " + resultValueVOSql + " );';" +
+						RETURN+LV3+"stmt.text = 'INSERT INTO " + tableName + "( " + resultValue + " ) VALUES ( " + resultValueVOSql + " );';" +
 						RETURN+LV3+"var params:Array = [ " + resultValueVO + " ];" +
 						RETURN+LV3+"setParameters( stmt, params );" + 
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
@@ -439,10 +440,13 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV3+"return sqlConnection;" +
 						RETURN+LV2+"}" +
 						RETURN+LV2+"public function setConnection( connection:SQLConnection ):void {" +
-						RETURN+LV3+"// try construct table on Database any time a new connection is submitted" +
-						RETURN+LV3+"createTable();" +
-						RETURN+LV3+indicesInitialization +
+						RETURN+LV3+"// store connection reference" +
 						RETURN+LV3+"sqlConnection = connection;" +
+						RETURN+LV3+"// try construct table on Database any time a new connection is submitted" +
+						RETURN+LV3+"if(sqlConnection.connected){" +
+						RETURN+LV4+"createTable();" +
+						RETURN+LV4+indicesInitialization +
+						RETURN+LV3+"}" +
 						RETURN+LV2+"}" +
 						RETURN+LV1+"" +
 						createTableDAO +
