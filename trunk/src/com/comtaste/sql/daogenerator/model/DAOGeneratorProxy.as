@@ -98,8 +98,10 @@ package com.comtaste.sql.daogenerator.model
 		{
 			var sqlDEFAULT:String = 
 						RETURN+LV2+"private function setParameters( stmt:SQLStatement, params:Array ):void {" +
+						RETURN+LV3+"var param:Object;" +
 						RETURN+LV3+"for ( var i:int = 0; i < params.length; i++ ) {" +
-						RETURN+LV4+"stmt.parameters[ i+1 ] = params[ i ] == null ? \"\" : params[ i ];" +
+						RETURN+LV4+"param = params[i];" +
+						RETURN+LV4+"stmt.parameters[ '@' + param.name ] = param.value;" +
 						RETURN+LV3+"}" +
 						RETURN+LV2+"}" +
 						RETURN+LV2 +
@@ -156,8 +158,8 @@ package com.comtaste.sql.daogenerator.model
 			var value:String;
 			for each ( value in parameters ) 
 			{
-				resultValue 	= resultValue + value + " = ? , ";
-				resultValueVO	= resultValueVO + 'rowItem.' + value + ', ';
+				resultValue 	= resultValue + value + " = @" + value + ", ";
+				resultValueVO	= resultValueVO + '{name:"' + value + '", value:rowItem.' + value + '}, ';
 			}
 			resultValue 	= resultValue.substr( 0, resultValue.length - 2 );
 			resultValueVO 	= resultValueVO.substr( 0, resultValueVO.length - 2 );
@@ -193,8 +195,8 @@ package com.comtaste.sql.daogenerator.model
 					continue;
 					
 				resultValue 		= resultValue + value + ", ";
-				resultValueVOSql	= resultValueVOSql + '?,';
-				resultValueVO		= resultValueVO + 'rowItem.' + value + ', ';
+				resultValueVOSql	= resultValueVOSql + '@' + value + ',';
+				resultValueVO		= resultValueVO + '{name:"' + value + '", value:rowItem.' + value + '}, ';
 			}
 
 			// remove last comma if needed
@@ -241,27 +243,35 @@ package com.comtaste.sql.daogenerator.model
 				
 			// delete function
 			var sqlDELETE:String = 
-						RETURN+LV2+"public function deleteRow( rowItem:" + voClass + ", resultHandler:Function = null, faultHandler:Function = null ):void {" +  
+						RETURN+LV2+"public function deleteRow( rowItem:" + voClass + ", resultHandler:Function = null, faultHandler:Function = null ):void {" +
 						RETURN+LV3+"var stmt:SQLStatement = new SQLStatement();" + 
 						RETURN+LV3+"stmt.sqlConnection = sqlConnection;" + 
 						RETURN+LV3+"stmt.text = 'DELETE FROM " + tableName + " WHERE ";
 						
 			// apply correct execution conditions
-			var fielName:String;
-			for each( fielName in primaryKeys )
+			var parametersVOString:String = "";
+			var fieldName:String;
+			for each( fieldName in primaryKeys )
 			{			
-				sqlDELETE += fielName + " = " + tableName + "." + fielName + " AND ";
+				sqlDELETE 			+= tableName + "." +fieldName + " = @" + fieldName + " AND ";
+				parametersVOString	+= '{name:"' + fieldName + '", value:rowItem.' + fieldName + '}, ';
 			}
 			// remove last 'AND ' token
 			var pos:int = sqlDELETE.lastIndexOf( " AND " );
 			if( pos > 0 )
-			{
 				sqlDELETE = sqlDELETE.substring( 0, pos );
-			}
+
+			// remove last comma if needed
+			if( parametersVOString.length > 0 )
+				parametersVOString 	= parametersVOString.substr( 0, parametersVOString.length - 2 );
+
 			// close statement line
 			sqlDELETE += ";';";
 						
 			sqlDELETE +=			
+						RETURN+LV3+"var params:Array = [ " + parametersVOString + " ];" +
+						RETURN+LV3+"setParameters( stmt, params );" +   
+						
 						RETURN+LV3+"stmt.addEventListener( SQLEvent.RESULT," + 
 						RETURN+LV3+"function ( event:SQLEvent ):void {" + 
 						RETURN+LV4+"if (resultHandler != null) resultHandler.call(this, rowItem);" +
@@ -439,11 +449,11 @@ package com.comtaste.sql.daogenerator.model
 						RETURN+LV2+"public function getConnection():SQLConnection {" +
 						RETURN+LV3+"return sqlConnection;" +
 						RETURN+LV2+"}" +
-						RETURN+LV2+"public function setConnection( connection:SQLConnection ):void {" +
+						RETURN+LV2+"public function setConnection( connection:SQLConnection, initializeTable:Boolean = false ):void {" +
 						RETURN+LV3+"// store connection reference" +
 						RETURN+LV3+"sqlConnection = connection;" +
 						RETURN+LV3+"// try construct table on Database any time a new connection is submitted" +
-						RETURN+LV3+"if(sqlConnection.connected){" +
+						RETURN+LV3+"if(sqlConnection.connected && initializeTable){" +
 						RETURN+LV4+"createTable();" +
 						RETURN+LV4+indicesInitialization +
 						RETURN+LV3+"}" +
